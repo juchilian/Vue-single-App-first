@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<head>
+<meta charset="utf-8">
+<title>Vue Search Tag</title>
+<style>
+body {
+  background: #20262E;
+  padding: 20px;
+  font-family: Helvetica;
+}
+
+#app {
+  background: #fff;
+  border-radius: 4px;
+  padding: 20px;
+  transition: all 0.2s;
+}
+
+h2 {
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+.search {
+  user-select: none;
+}
+.search:hover {
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.active {
+ background: yellow;
+} 
+.box {
+    border: 1px solid #ddd;
+    padding:5px;
+    margin: 5px;
+    display: inline-block;
+}
+
+.nonetag {
+    background-color: pink;
+}
+[v-cloak] {
+  display:none;
+}
+</style>
+</head>
+<body>
+    <div id="app">
+        <h2>検索条件: {{ activeList }} ヒット数：{{tripsFiltered.length}}件</h2>
+        <span style="float: right;">
+            <input type="checkbox" v-model="searchType">
+            <span style="margin-right: 5px;">Tag完全一致</span>
+            <span>並び順指定</span>
+            <select v-model="sort" @change="sortAction" name="sortbox">
+                <option value="cost-low" selected>価格が低い順</option>
+                <option value="cost-high">価格が高い順</option>
+            </select>
+        </span>
+        <search-tag v-for="tag in tagList" :key="tag.id" :name="tag.name"></search-tag>
+        <div>
+            <trip v-for="trip in tripsFiltered" :key="trip.id" :title="trip.title" :content="trip.content" :tags="trip.tags" :cost="trip.cost"></trip>
+            <p v-show="!tripsFiltered.length" v-cloak>申し訳ございません。条件に一致するものは見つかりませんでした。</p>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script>
+    const searchTag = 
+    Vue.component('searchTag',{
+        props: ['name'],
+        data: function() {
+            return {
+                isActive: false
+            };
+        },
+        template:'<div :class="{search:true, box: true, active:isActive}" @click="toggleActive()">{{ name }}</div>',
+        methods: {
+            toggleActive: function(name) {
+                this.isActive = !this.isActive;
+                if(this.isActive) {
+                    this.$parent.activeList.push(this.name);
+                    this.$parent.total++;
+                } else {
+                    const num = this.$parent.activeList.indexOf(this.name);
+                    this.$parent.activeList.splice(num, 1); 
+                    this.$parent.total--;                  
+                }
+            }
+        }
+        });
+    
+    const trip = 
+    Vue.component('trip',{
+        props: ['title','content', 'tags', 'cost'],
+        template: '<div class="box"><h2>{{title}}</h2><p>{{content}}</p><span v-show="tags.length" v-for="tag in tags" class="box">{{ tag }}</span><span v-show="!tags.length" class="box nonetag">No tags</span><p>￥{{cost}}</p></div>',
+    });
+
+    new Vue({
+        el: "#app",
+        components: {
+            'search-tag': searchTag,
+            'trip': trip
+        },
+        data: {
+            total: 0,
+            activeList: [],
+            searchType: true,
+            sort: '',
+            tagList: [
+                { id:1, name:'cheap'},
+                { id:2, name:'Near Station'},
+                { id:3, name:'Popular'},
+            ],
+            tripList: [
+                { id:1, title:'朗らか旅', content:"とても楽しい雰囲気でお勧めです", tags: ['Popular'], cost:1920000},
+                { id:2, title:'愉快な旅', content:"とても楽しい雰囲気でお勧めです", tags: ['cheap'], cost:150000},
+                { id:3, title:'ぼんやり旅', content:"とても楽しい雰囲気でお勧めです", tags: ['Near Station','Popular'], cost:170000},
+                { id:4, title:'超アクティビティ！旅', content:"とても楽しい雰囲気でお勧めです", tags: ['cheap','Popular'], cost:600000},
+                { id:5, title:'100%幸せになれる旅', content:"とても楽しい雰囲気でお勧めです", tags: ['Near Station',], cost:90000},
+                { id:6, title:'海巡り旅', content:"とても楽しい雰囲気でお勧めです", tags: ['Near Station',], cost:4500},
+                { id:7, title:'食べ歩き旅', content:"とても楽しい雰囲気でお勧めです", tags: ['Near Station',], cost:198000},
+                { id:8, title:'ぶらり旅', content:"とても楽しい雰囲気でお勧めです", tags: ['Near Station','Popular'], cost:100000000},
+                { id:9, title:'星をみる旅', content:"とても楽しい雰囲気でお勧めです", tags: [], cost:70000},
+                { id:10, title:'よき旅', content:"とても楽しい雰囲気でお勧めです", tags: ['Popular'], cost:20000},
+            ],
+        },
+        methods: {
+            sortAction: function() {
+                if(this.sort==='cost-low') {
+                    this.tripsFiltered.sort(function(a,b){
+                        if(a.cost<b.cost) return -1;
+                        if(a.cost > b.cost) return 1;
+                        return 0;
+                    });
+                } else if (this.sort==='cost-high') {
+                    this.tripsFiltered.sort(function(a,b){
+                        if(a.cost<b.cost) return 1;
+                        if(a.cost > b.cost) return -1;
+                        return 0;
+                    });
+                } else {
+                    return this.tripsFiltered;
+                }
+            }
+        },
+        computed: {
+            tripsFiltered: function() {
+                let filteredTrips = [];
+                if(this.activeList.length===0) {
+                    return this.tripList;
+                }
+                this.tripList.filter(trip => {
+                    const judgeList = [];
+                    this.activeList.filter(activeTag => {
+                        if(trip.tags.indexOf(activeTag) !== -1) {
+                            judgeList.push(true);
+                        } else {
+                            judgeList.push(false);
+                        }
+                    });
+                    // every ==> some でor検索
+                    if(this.searchType === true) {
+                        if(judgeList.every(val => val === true)) {
+                            filteredTrips.push(trip);
+                        }
+                    } else {
+                        if(judgeList.some(val => val === true)) {
+                            filteredTrips.push(trip);
+                        }
+                    }
+                });
+                return filteredTrips;
+            },   
+        },
+        watch: {
+        }
+    })
+</script>
+</body>
