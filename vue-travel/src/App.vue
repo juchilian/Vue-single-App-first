@@ -1,13 +1,15 @@
 <template>
-  <div id="root">
-    <filter-form :tag-list="tagList" :trips-filtered="tripsFiltered" :display-active-list="displayActiveList" :form-state="formState" @toggle="toggle"></filter-form>
-    <trip-view :trips-filtered="tripsFiltered"></trip-view>
+  <div id="app">
+    <!-- router-viewに書き換える -->
+    <nav-link></nav-link>
+    <router-view :tripsFiltered="tripsFiltered" :tagList="tagList" :formState="formState" :displayActiveList="displayActiveList" @toggle="toggle"></router-view>
   </div>
 </template>
 
 <script>
     import FilterForm from "./components/FilterForm";
     import TripView from "./components/TripView";
+    import NavLink from "./components/NavLink";
 
   export default {
       name: "App.vue",
@@ -87,14 +89,15 @@
               let displayActiveList = [];
               this.activeList.filter(tag=>{
                   displayActiveList.push(tag.name)
-              })
+              });
               return displayActiveList;
           }
       },
       methods: {
           toggle(id) {
+              console.log(id);
               this.tagList[id].isActive = !this.tagList[id].isActive;
-              this.activeList = []
+              this.activeList = [];
               this.tagList.filter(tag => {
                   if (tag.isActive === true) {
                       this.activeList.push(tag);
@@ -104,8 +107,9 @@
           }
       },
       components: {
-          'filter-form': FilterForm,
-          'trip-view': TripView
+          NavLink,
+          FilterForm,
+          TripView
       }
   }
 </script>

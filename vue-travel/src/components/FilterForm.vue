@@ -28,7 +28,7 @@
     },
     methods: {
       toggle(id) {
-        this.$emit('toggle', id)
+        this.$emit('toggle', id);
       }
     },
     components: {
