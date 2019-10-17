@@ -1,24 +1,23 @@
 <style>
-  @import "../static/styles.css";
+@import "../static/styles.css";
 </style>
 <template>
   <div id="app">
-		<nav-link></nav-link>
-		<router-view 
-			:tagList="tagList"
-			:formState="formState" 
-			:tripsFiltered="tripsFiltered" 
-			:displayActiveList="displayActiveList"
-			@toggle="toggle">
-		</router-view>
+    <nav-link></nav-link>
+    <router-view
+      :tagList="tagList"
+      :formState="formState"
+      :tripsFiltered="tripsFiltered"
+      :displayActiveList="displayActiveList"
+      @toggle="toggle"
+    ></router-view>
   </div>
 </template>
 
 <script>
-import NavLink from './components/NavLink'
-
+import NavLink from "./components/NavLink";
 export default {
-	name: "App.vue",
+  name: "App.vue",
   data() {
     return {
       total: 0,
@@ -171,7 +170,7 @@ export default {
     }
   },
   components: {
-		NavLink,
+    NavLink
   }
 };
 </script>
